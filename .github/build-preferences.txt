@@ -3,9 +3,6 @@
 # Add/remove applications as needed
 
 # Core infrastructure
-multus-cni
-mastodon
-apache
-minio
-minio-object-browser
-thanos
+redis
+redis-sentinel
+redis-exporter
