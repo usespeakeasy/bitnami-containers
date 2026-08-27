@@ -7,13 +7,13 @@ ARG DOWNLOADS_URL="https://downloads.bitnami.com/files/stacksmith"
 ARG TARGETARCH
 
 LABEL org.opencontainers.image.base.name="docker.io/bitnami/minideb:bookworm" \
-      org.opencontainers.image.created="2026-08-26T08:18:01Z" \
+      org.opencontainers.image.created="2026-08-26T14:42:44Z" \
       org.opencontainers.image.description="Application packaged by Broadcom, Inc." \
-      org.opencontainers.image.documentation="https://github.com/bitnami/containers/tree/main/bitnami/jupyterhub/README.md" \
-      org.opencontainers.image.source="https://github.com/bitnami/containers/tree/main/bitnami/jupyterhub" \
-      org.opencontainers.image.title="jupyterhub" \
+      org.opencontainers.image.documentation="https://github.com/bitnami/containers/tree/main/bitnami/grafana-operator/README.md" \
+      org.opencontainers.image.source="https://github.com/bitnami/containers/tree/main/bitnami/grafana-operator" \
+      org.opencontainers.image.title="grafana-operator" \
       org.opencontainers.image.vendor="Broadcom, Inc." \
-      org.opencontainers.image.version="5.5.1"
+      org.opencontainers.image.version="5.25.0"
 
 ENV HOME="/" \
     OS_ARCH="${TARGETARCH:-amd64}" \
@@ -23,13 +23,12 @@ ENV HOME="/" \
 COPY prebuildfs /
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 # Install required system packages and dependencies
-RUN install_packages ca-certificates curl libgcc-s1 libssl3 libstdc++6 procps zlib1g
+RUN install_packages ca-certificates curl procps
 RUN --mount=type=secret,id=downloads_url,env=SECRET_DOWNLOADS_URL \
     DOWNLOADS_URL=${SECRET_DOWNLOADS_URL:-${DOWNLOADS_URL}} ; \
     mkdir -p /tmp/bitnami/pkg/cache/ ; cd /tmp/bitnami/pkg/cache/ || exit 1 ; \
     COMPONENTS=( \
-      "miniforge-26.5.3-0-0-linux-${OS_ARCH}-debian-12" \
-      "jupyterhub-5.5.1-1-linux-${OS_ARCH}-debian-12" \
+      "grafana-operator-5.25.0-0-linux-${OS_ARCH}-debian-12" \
     ) ; \
     for COMPONENT in "${COMPONENTS[@]}"; do \
       if [ ! -f "${COMPONENT}.tar.gz" ]; then \
@@ -44,12 +43,17 @@ RUN apt-get update && apt-get upgrade -y && \
     apt-get clean && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 RUN chmod g+rwX /opt/bitnami
 RUN find / -perm /6000 -type f -exec chmod a-s {} \; || true
+RUN ln -sf /opt/bitnami/grafana-operator/bin/grafana-operator /usr/local/bin/grafana-operator
+RUN mkdir -p /opt/jsonnet && ln -sf /opt/bitnami/grafonnet-lib/grafonnet /opt/jsonnet/grafonnet
 RUN uninstall_packages curl
 
-ENV APP_VERSION="5.5.1" \
-    BITNAMI_APP_NAME="jupyterhub" \
-    IMAGE_REVISION="1" \
-    PATH="/opt/bitnami/miniforge/bin:/opt/bitnami/miniforge/bin/:$PATH"
+ENV APP_VERSION="5.25.0" \
+    BITNAMI_APP_NAME="grafana-operator" \
+    IMAGE_REVISION="0" \
+    PATH="/opt/bitnami/grafana-operator/bin:$PATH"
 
+EXPOSE 8080
+
+WORKDIR /opt/bitnami/grafana-operator
 USER 1001
-ENTRYPOINT [ "jupyterhub" ]
+ENTRYPOINT [ "grafana-operator" ]
