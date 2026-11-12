@@ -32,4 +32,6 @@ jobs:
         with:
           persist-credentials: false
       - run: gh extension install github/gh-actions-lock --pin v0.4.1
-      - run: gh actions-lock --verify
+      # auto-build-images.yml stays unlocked: aquasecurity's IP allow list
+      # blocks resolving aquasecurity/trivy-action, so it can't be locked.
+      - run: gh actions-lock --verify $(ls .github/workflows/*.y*ml | grep -v '/auto-build-images.yml$')
