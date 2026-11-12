@@ -1,0 +1,24 @@
+# Temporary: generates actions.lock from a GitHub-hosted runner. Removed before review.
+name: tmp-lockgen
+on:
+  push:
+    branches:
+      - devin/sre-3136/lock-github-actions
+permissions:
+  contents: read
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: gh extension install github/gh-actions-lock --pin v0.4.1
+      - run: rm .github/workflows/tmp-lockgen.yml && gh actions-lock --no-interactive --migrate-local-actions; gh actions-lock --verify; git status --short
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: github-dir
+          path: .github
+          include-hidden-files: true
